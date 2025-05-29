@@ -278,9 +278,13 @@
                         <li class="nav-item"><a class="nav-link" href="#team">Equipo</a></li>
                         <li class="nav-item"><a class="nav-link" href="#contact">Contactanos</a></li>
                         <li class="nav-item">
-                            <button id="loginButton" class="btn btn-primary">Iniciar Sesión</button>
+                            <button id="loginButton" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="fas fa-user me-2"></i>Iniciar Sesión
+                            </button>
                             <div id="userDisplay"></div>
-                            <button id="logoutButton" class="btn btn-outline-light" style="display: none;">Cerrar Sesión</button>
+                            <button id="logoutButton" class="btn btn-outline-light" style="display: none;">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </button>
                         </li>
                     </ul>
                 </div>
@@ -848,5 +852,80 @@
         
         <!-- Authentication JS -->
         <script src="js/auth.js"></script>
+        
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title" id="loginModalLabel">Iniciar Sesión</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Tabs -->
+                        <ul class="nav nav-tabs mb-4" id="loginTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">
+                                    Iniciar Sesión
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">
+                                    Registrarse
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="loginTabContent">
+                            <!-- Login Tab -->
+                            <div class="tab-pane fade show active" id="login" role="tabpanel">
+                                <form id="loginForm" class="mb-3">
+                                    <div class="mb-3">
+                                        <label for="loginEmail" class="form-label">Correo Electrónico</label>
+                                        <input type="email" class="form-control" id="loginEmail" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="loginPassword" class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" id="loginPassword" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar Sesión</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Register Tab -->
+                            <div class="tab-pane fade" id="register" role="tabpanel">
+                                <form id="registerForm" class="mb-3">
+                                    <div class="mb-3">
+                                        <label for="registerName" class="form-label">Nombre Completo</label>
+                                        <input type="text" class="form-control" id="registerName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="registerEmail" class="form-label">Correo Electrónico</label>
+                                        <input type="email" class="form-control" id="registerEmail" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="registerPassword" class="form-label">Contraseña</label>
+                                        <input type="password" class="form-control" id="registerPassword" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mb-3">Registrarse</button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Separator -->
+                        <div class="text-center mb-3">
+                            <span class="text-muted">O continuar con</span>
+                        </div>
+                        
+                        <!-- Social Login Buttons -->
+                        <button class="btn btn-outline-dark w-100 mb-3" onclick="signInWithGoogle()">
+                            <img src="https://www.google.com/favicon.ico" alt="Google" width="20" height="20" class="me-2">
+                            Continuar con Google
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
