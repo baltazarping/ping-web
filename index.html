@@ -788,65 +788,10 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>
-        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-        <!-- * *                               SB Forms JS                               * *-->
-        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
-        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
-        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
         
-        <!-- EmailJS SDK -->
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-        <script type="text/javascript">
-            (function() {
-                // https://dashboard.emailjs.com/admin/account
-                emailjs.init('YOUR_PUBLIC_KEY');
-            })();
-
-            window.onload = function() {
-                document.getElementById('contactForm').addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    
-                    // Show loading state
-                    document.getElementById('submitButton').disabled = true;
-                    document.getElementById('submitButton').innerHTML = 'Sending...';
-                    
-                    // Get the form data
-                    const templateParams = {
-                        from_name: document.getElementById('name').value,
-                        from_email: document.getElementById('email').value,
-                        phone: document.getElementById('phone').value,
-                        message: document.getElementById('message').value,
-                        to_email: 'renderph16@gmail.com'
-                    };
-
-                    // Send the email using EmailJS
-                    emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
-                        .then(function(response) {
-                            // Show success message
-                            const alertMessage = document.getElementById('alertMessage');
-                            alertMessage.style.display = 'block';
-                            alertMessage.className = 'mt-3 text-success';
-                            alertMessage.innerHTML = '¡Mensaje enviado exitosamente!';
-                            
-                            // Reset form
-                            document.getElementById('contactForm').reset();
-                        }, function(error) {
-                            // Show error message
-                            const alertMessage = document.getElementById('alertMessage');
-                            alertMessage.style.display = 'block';
-                            alertMessage.className = 'mt-3 text-danger';
-                            alertMessage.innerHTML = 'Lo siento, hubo un error al enviar el mensaje. Por favor, intenta nuevamente.';
-                        })
-                        .finally(function() {
-                            // Reset button state
-                            document.getElementById('submitButton').disabled = false;
-                            document.getElementById('submitButton').innerHTML = 'Send Message';
-                        });
-                });
-            }
-        </script>
         <!-- Firebase Scripts -->
         <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-analytics-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
         
