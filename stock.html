@@ -85,6 +85,7 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                     <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" id="registrosBtn">Registros</a></li>
                     <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn" style="display: none;">Cerrar Sesión</a></li>
                 </ul>
             </div>
@@ -148,6 +149,27 @@
         </div>
     </div>
 
+    <!-- Registros Section -->
+    <div class="container stock-container" id="registrosSection" style="display: none;">
+        <h2 class="text-center mb-4">Registros de Cambios</h2>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Producto</th>
+                        <th>Tipo de Cambio</th>
+                        <th>Cantidad</th>
+                        <th>Stock Final</th>
+                    </tr>
+                </thead>
+                <tbody id="registrosTableBody">
+                    <!-- Registros will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Credenciales de usuario (en un entorno real, esto debería estar en el servidor)
@@ -159,11 +181,14 @@
         // Elementos del DOM
         const loginSection = document.getElementById('loginSection');
         const stockSection = document.getElementById('stockSection');
+        const registrosSection = document.getElementById('registrosSection');
         const loginForm = document.getElementById('loginForm');
         const loginAlert = document.getElementById('loginAlert');
         const logoutBtn = document.getElementById('logoutBtn');
+        const registrosBtn = document.getElementById('registrosBtn');
         const addProductForm = document.getElementById('addProductForm');
         const productTableBody = document.getElementById('productTableBody');
+        const registrosTableBody = document.getElementById('registrosTableBody');
 
         // Verificar si el usuario está autenticado
         function checkAuth() {
@@ -177,8 +202,16 @@
         function showStockSection() {
             loginSection.style.display = 'none';
             stockSection.style.display = 'block';
+            registrosSection.style.display = 'none';
             logoutBtn.style.display = 'block';
             loadProducts();
+        }
+
+        // Mostrar sección de registros
+        function showRegistrosSection() {
+            stockSection.style.display = 'none';
+            registrosSection.style.display = 'block';
+            loadRegistros();
         }
 
         // Manejo del login
@@ -235,12 +268,41 @@
             productTableBody.appendChild(row);
         }
 
+        // Cargar registros
+        function loadRegistros() {
+            const registros = JSON.parse(localStorage.getItem('registros') || '[]');
+            registrosTableBody.innerHTML = '';
+            registros.forEach(registro => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(registro.fecha).toLocaleString()}</td>
+                    <td>${registro.producto}</td>
+                    <td>${registro.tipo}</td>
+                    <td>${registro.cantidad}</td>
+                    <td>${registro.stockFinal}</td>
+                `;
+                registrosTableBody.appendChild(row);
+            });
+        }
+
+        // Agregar registro
+        function addRegistro(producto, tipo, cantidad, stockFinal) {
+            const registros = JSON.parse(localStorage.getItem('registros') || '[]');
+            registros.unshift({
+                fecha: new Date(),
+                producto: producto,
+                tipo: tipo,
+                cantidad: cantidad,
+                stockFinal: stockFinal
+            });
+            localStorage.setItem('registros', JSON.stringify(registros));
+        }
+
         // Actualizar stock (incrementar/decrementar)
         function updateStock(index, change) {
             const products = JSON.parse(localStorage.getItem('products') || '[]');
             const newStock = parseInt(products[index].stock) + change;
             
-            // Evitar stock negativo
             if (newStock < 0) {
                 alert('El stock no puede ser negativo');
                 return;
@@ -248,10 +310,42 @@
             
             products[index].stock = newStock;
             localStorage.setItem('products', JSON.stringify(products));
+            
+            // Agregar registro del cambio
+            addRegistro(
+                products[index].name,
+                change > 0 ? 'Incremento' : 'Decremento',
+                Math.abs(change),
+                newStock
+            );
+            
             loadProducts();
         }
 
-        // Manejar el formulario de agregar producto
+        // Eliminar producto
+        function deleteProduct(index) {
+            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+                const products = JSON.parse(localStorage.getItem('products') || '[]');
+                const deletedProduct = products[index];
+                products.splice(index, 1);
+                localStorage.setItem('products', JSON.stringify(products));
+                
+                // Agregar registro de eliminación
+                addRegistro(
+                    deletedProduct.name,
+                    'Eliminación',
+                    deletedProduct.stock,
+                    0
+                );
+                
+                loadProducts();
+            }
+        }
+
+        // Event listeners
+        registrosBtn.addEventListener('click', showRegistrosSection);
+
+        // Actualizar el manejo del formulario para incluir registros
         addProductForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const product = {
@@ -264,19 +358,17 @@
             products.push(product);
             localStorage.setItem('products', JSON.stringify(products));
 
+            // Agregar registro de nuevo producto
+            addRegistro(
+                product.name,
+                'Nuevo Producto',
+                product.stock,
+                product.stock
+            );
+
             addProductToTable(product, products.length - 1);
             addProductForm.reset();
         });
-
-        // Eliminar producto
-        function deleteProduct(index) {
-            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-                const products = JSON.parse(localStorage.getItem('products') || '[]');
-                products.splice(index, 1);
-                localStorage.setItem('products', JSON.stringify(products));
-                loadProducts();
-            }
-        }
 
         // Verificar autenticación al cargar la página
         checkAuth();
