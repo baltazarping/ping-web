@@ -85,7 +85,7 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                     <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="registros.html">Registros</a></li>
+                    <li class="nav-item" id="registrosLink" style="display: none;"><a class="nav-link" href="registros.html">Registros</a></li>
                     <li class="nav-item"><a class="nav-link" href="#" id="logoutBtn" style="display: none;">Cerrar Sesión</a></li>
                 </ul>
             </div>
@@ -169,8 +169,13 @@
         // Verificar si el usuario está autenticado
         function checkAuth() {
             const isAuthenticated = localStorage.getItem('isAuthenticated');
+            const isAdmin = localStorage.getItem('isAdmin');
             if (isAuthenticated) {
                 showStockSection();
+                // Mostrar el botón de registros solo si es admin
+                if (isAdmin === 'true') {
+                    document.getElementById('registrosLink').style.display = 'block';
+                }
             }
         }
 
@@ -190,7 +195,10 @@
 
             if (username === validCredentials.username && password === validCredentials.password) {
                 localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('isAdmin', 'true'); // Guardamos el estado de admin
                 showStockSection();
+                // Mostrar el botón de registros si es admin
+                document.getElementById('registrosLink').style.display = 'block';
             } else {
                 loginAlert.textContent = 'Usuario o contraseña incorrectos';
                 loginAlert.style.display = 'block';
@@ -200,6 +208,7 @@
         // Manejo del logout
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('isAdmin'); // Eliminar también el estado de admin
             location.reload();
         });
 

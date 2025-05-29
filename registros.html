@@ -283,13 +283,20 @@
 
         // Verificar autenticación
         firebase.auth().onAuthStateChanged((user) => {
-            if (!user) {
+            // Verificar si es admin
+            const isAdmin = localStorage.getItem('isAdmin');
+            if (!isAdmin || isAdmin !== 'true') {
                 window.location.href = 'index.html';
+                return;
             }
+            loadUsers();
         });
 
-        // Cargar usuarios al iniciar
-        loadUsers();
+        // Cargar usuarios al iniciar solo si es admin
+        const isAdmin = localStorage.getItem('isAdmin');
+        if (isAdmin === 'true') {
+            loadUsers();
+        }
     </script>
 </body>
 </html> 
