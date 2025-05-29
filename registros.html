@@ -142,24 +142,11 @@
     <div class="container registros-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Registros de Usuarios</h2>
-            <button class="btn btn-primary" onclick="refreshTable()">
-                <i class="fas fa-sync-alt me-2"></i>Actualizar
-            </button>
-        </div>
-        
-        <!-- Search and Filters -->
-        <div class="row">
-            <div class="col-md-6">
-                <div class="search-container">
-                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar usuarios...">
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="filters">
-                    <button class="filter-btn active" data-filter="all">Todos</button>
-                    <button class="filter-btn" data-filter="online">En línea</button>
-                    <button class="filter-btn" data-filter="offline">Desconectados</button>
-                </div>
+            <div>
+                <span id="nextUpdate" class="text-muted me-3">Próxima actualización en: 10:00</span>
+                <button class="btn btn-primary" onclick="refreshTable()">
+                    <i class="fas fa-sync-alt me-2"></i>Actualizar
+                </button>
             </div>
         </div>
 
@@ -208,24 +195,63 @@
         // Referencias
         const usersRef = firebase.database().ref('users');
         const tableBody = document.getElementById('usersTableBody');
-        const searchInput = document.getElementById('searchInput');
-        const filterButtons = document.querySelectorAll('.filter-btn');
+        const nextUpdateSpan = document.getElementById('nextUpdate');
+
+        // Variables para el temporizador
+        const UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutos en milisegundos
+        let updateTimer;
+        let countdownInterval;
+
+        // Función para actualizar el contador
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const nextUpdate = new Date(localStorage.getItem('nextUpdate'));
+            const timeLeft = nextUpdate - now;
+
+            if (timeLeft <= 0) {
+                refreshTable();
+                return;
+            }
+
+            const minutes = Math.floor(timeLeft / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            nextUpdateSpan.textContent = `Próxima actualización en: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
 
         // Función para refrescar la tabla
         function refreshTable() {
             const refreshBtn = document.querySelector('.fa-sync-alt');
-            refreshBtn.classList.add('fa-spin'); // Agregar animación de giro
+            refreshBtn.classList.add('fa-spin');
+            
+            // Establecer la próxima actualización
+            const nextUpdate = new Date().getTime() + UPDATE_INTERVAL;
+            localStorage.setItem('nextUpdate', nextUpdate);
             
             // Recargar datos
             loadUsers().then(() => {
-                // Detener la animación después de 1 segundo
                 setTimeout(() => {
                     refreshBtn.classList.remove('fa-spin');
                 }, 1000);
             });
+
+            // Reiniciar el temporizador
+            setupAutoRefresh();
         }
 
-        // Modificar loadUsers para devolver una promesa
+        // Configurar actualización automática
+        function setupAutoRefresh() {
+            // Limpiar temporizadores existentes
+            if (updateTimer) clearTimeout(updateTimer);
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            // Configurar próxima actualización
+            updateTimer = setTimeout(refreshTable, UPDATE_INTERVAL);
+            
+            // Actualizar el contador cada segundo
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // Función para cargar usuarios
         function loadUsers() {
             return new Promise((resolve) => {
                 usersRef.once('value', (snapshot) => {
@@ -263,8 +289,6 @@
                             <td>${lastLogin.toLocaleString()}</td>
                             <td>${userData.provider || 'Email'}</td>
                         `;
-
-                        row.dataset.status = isOnline ? 'online' : 'offline';
                         tableBody.appendChild(row);
                     });
                     resolve();
@@ -272,54 +296,23 @@
             });
         }
 
-        // Búsqueda de usuarios
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = tableBody.getElementsByTagName('tr');
-
-            Array.from(rows).forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        });
-
-        // Filtros
-        filterButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const filter = button.dataset.filter;
-                
-                // Actualizar botones activos
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                // Aplicar filtro
-                const rows = tableBody.getElementsByTagName('tr');
-                Array.from(rows).forEach(row => {
-                    if (filter === 'all') {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = row.dataset.status === filter ? '' : 'none';
-                    }
-                });
-            });
-        });
-
         // Verificar autenticación
         firebase.auth().onAuthStateChanged((user) => {
-            // Verificar si es admin
             const isAdmin = localStorage.getItem('isAdmin');
             if (!isAdmin || isAdmin !== 'true') {
                 window.location.href = 'index.html';
                 return;
             }
-            loadUsers();
+            
+            // Iniciar carga inicial y configurar actualización automática
+            refreshTable();
         });
 
-        // Cargar usuarios al iniciar solo si es admin
-        const isAdmin = localStorage.getItem('isAdmin');
-        if (isAdmin === 'true') {
-            loadUsers();
-        }
+        // Limpiar temporizadores cuando se cierra la página
+        window.addEventListener('beforeunload', () => {
+            if (updateTimer) clearTimeout(updateTimer);
+            if (countdownInterval) clearInterval(countdownInterval);
+        });
     </script>
 </body>
 </html> 
