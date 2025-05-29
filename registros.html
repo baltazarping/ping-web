@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>PING - Registros de Usuarios</title>
+    <link rel="icon" type="image/x-icon" href="assets/ping ico.png" />
+    <!-- Font Awesome -->
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
+    <!-- Core theme CSS -->
+    <link href="css/styles.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            padding-top: 80px;
+        }
+
+        .registros-container {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            color: #ffffff;
+            margin-top: 20px;
+        }
+
+        .table thead th {
+            background-color: #2a2a2a;
+            border-color: #404040;
+            color: #ffffff;
+        }
+
+        .table td {
+            border-color: #404040;
+            vertical-align: middle;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .status-online {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-offline {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            background-color: #2a2a2a;
+            border: 1px solid #404040;
+            color: #ffffff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .search-input:focus {
+            background-color: #2a2a2a;
+            border-color: #4b5ae4;
+            color: #ffffff;
+            box-shadow: 0 0 0 0.25rem rgba(75, 90, 228, 0.25);
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background-color: #2a2a2a;
+            border: 1px solid #404040;
+            color: #ffffff;
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background-color: #4b5ae4;
+            border-color: #4b5ae4;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><img src="assets/img/ping 1.png" alt="..." /></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
+                <i class="fas fa-bars ms-1"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="stock.html">Stock</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="registros.html">Registros</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Registros Section -->
+    <div class="container registros-container">
+        <h2 class="text-center mb-4">Registros de Usuarios</h2>
+        
+        <!-- Search and Filters -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar usuarios...">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="online">En línea</button>
+                    <button class="filter-btn" data-filter="offline">Desconectados</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-responsive">
+            <table class="table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Último acceso</th>
+                        <th>Tipo de cuenta</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- La tabla se llenará dinámicamente con JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    
+    <!-- Bootstrap core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyACYdTx-sM9sNQ5a6jqD05oEcE-4n2o2TM",
+            authDomain: "pingnec-f8d76.firebaseapp.com",
+            projectId: "pingnec-f8d76",
+            storageBucket: "pingnec-f8d76.firebasestorage.app",
+            messagingSenderId: "677440746671",
+            appId: "1:677440746671:web:1ef4837b5c385f7dc0d05a",
+            measurementId: "G-X7C3CMZR2L"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Referencias
+        const usersRef = firebase.database().ref('users');
+        const tableBody = document.getElementById('usersTableBody');
+        const searchInput = document.getElementById('searchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+
+        // Cargar usuarios
+        function loadUsers() {
+            usersRef.on('value', (snapshot) => {
+                const users = snapshot.val();
+                tableBody.innerHTML = '';
+
+                if (!users) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="no-results">No hay usuarios registrados</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                Object.entries(users).forEach(([uid, userData]) => {
+                    const row = document.createElement('tr');
+                    const lastLogin = new Date(userData.lastLogin);
+                    const isOnline = (new Date() - lastLogin) < 300000; // 5 minutos
+
+                    row.innerHTML = `
+                        <td>
+                            <div class="user-info">
+                                <img src="${userData.photoURL || 'assets/img/default-avatar.png'}" alt="${userData.name}" class="user-avatar">
+                                <span>${userData.name}</span>
+                            </div>
+                        </td>
+                        <td>${userData.email}</td>
+                        <td>
+                            <span class="status-badge ${isOnline ? 'status-online' : 'status-offline'}">
+                                ${isOnline ? 'En línea' : 'Desconectado'}
+                            </span>
+                        </td>
+                        <td>${lastLogin.toLocaleString()}</td>
+                        <td>${userData.provider || 'Email'}</td>
+                    `;
+
+                    row.dataset.status = isOnline ? 'online' : 'offline';
+                    tableBody.appendChild(row);
+                });
+            });
+        }
+
+        // Búsqueda de usuarios
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = tableBody.getElementsByTagName('tr');
+
+            Array.from(rows).forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Filtros
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const filter = button.dataset.filter;
+                
+                // Actualizar botones activos
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // Aplicar filtro
+                const rows = tableBody.getElementsByTagName('tr');
+                Array.from(rows).forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = row.dataset.status === filter ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Verificar autenticación
+        firebase.auth().onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Cargar usuarios al iniciar
+        loadUsers();
+    </script>
+</body>
+</html> 
