@@ -247,10 +247,25 @@
                 margin-right: 8px;
             }
             #userDisplay {
-                display: flex;
-                align-items: center;
-                color: white;
-                margin-left: 15px;
+                background: rgba(255, 255, 255, 0.1);
+                padding: 5px 15px;
+                border-radius: 25px;
+                margin-right: 10px;
+            }
+            #userDisplay img {
+                border: 2px solid rgba(255, 255, 255, 0.2);
+            }
+            #userDisplay span {
+                font-size: 0.9rem;
+                font-weight: 500;
+            }
+            @media (max-width: 991px) {
+                #userDisplay {
+                    margin: 10px 0;
+                }
+                #logoutButton {
+                    margin-top: 10px;
+                }
             }
         </style>
     </head>
@@ -265,7 +280,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
             <div class="container">
-                <a class="navbar-brand" href="stock.html" title="Ir a gestión de stock"><img src="assets/img/ping 1.png" alt="..." /></a>
+                <a class="navbar-brand" href="#page-top"><img src="assets/img/ping 1.png" alt="..." /></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars ms-1"></i>
@@ -281,8 +296,11 @@
                             <button id="loginButton" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
                                 <i class="fas fa-user me-2"></i>Iniciar Sesión
                             </button>
-                            <div id="userDisplay"></div>
-                            <button id="logoutButton" class="btn btn-outline-light" style="display: none;">
+                            <div id="userDisplay" style="display: none;" class="d-flex align-items-center">
+                                <img class="user-avatar me-2" src="" alt="" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                                <span class="text-white"></span>
+                            </div>
+                            <button id="logoutButton" class="btn btn-outline-light ms-2" style="display: none;">
                                 <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
                             </button>
                         </li>
