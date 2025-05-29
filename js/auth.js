@@ -61,6 +61,7 @@ function registerWithEmail(email, password, name) {
 function signInWithEmail(email, password) {
     firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
+            saveUserToDatabase(userCredential.user);
             closeLoginModal();
             showSuccess("¡Inicio de sesión exitoso!");
         })
@@ -86,12 +87,24 @@ function signOut() {
 function saveUserToDatabase(user) {
     const userRef = firebase.database().ref('users/' + user.uid);
     const userData = {
-        name: user.displayName,
+        name: user.displayName || 'Usuario sin nombre',
         email: user.email,
-        photoURL: user.photoURL,
-        lastLogin: new Date().toISOString()
+        photoURL: user.photoURL || 'assets/img/default-avatar.png',
+        lastLogin: new Date().toISOString(),
+        provider: user.providerData[0].providerId,
+        createdAt: user.metadata.creationTime,
+        isAdmin: false // Por defecto, ningún usuario es admin
     };
-    userRef.set(userData);
+    userRef.update(userData).then(() => {
+        console.log('Usuario guardado en la base de datos');
+        // Si el usuario es admin@ping.com, lo marcamos como admin
+        if (user.email === 'admin@ping.com') {
+            userRef.update({ isAdmin: true });
+            localStorage.setItem('isAdmin', 'true');
+        }
+    }).catch(error => {
+        console.error('Error al guardar usuario:', error);
+    });
 }
 
 // Función para actualizar la interfaz según el estado de autenticación
@@ -186,5 +199,9 @@ if (logoutButton) {
 
 // Observador del estado de autenticación
 firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // Actualizar datos del usuario en cada inicio de sesión
+        saveUserToDatabase(user);
+    }
     updateUI(user);
 }); 

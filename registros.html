@@ -253,12 +253,14 @@
                         const row = document.createElement('tr');
                         const lastLogin = new Date(userData.lastLogin);
                         const isOnline = (new Date() - lastLogin) < 300000; // 5 minutos
+                        const createdAt = userData.createdAt ? new Date(userData.createdAt) : new Date();
 
                         row.innerHTML = `
                             <td>
                                 <div class="user-info">
                                     <img src="${userData.photoURL || 'assets/img/default-avatar.png'}" alt="${userData.name}" class="user-avatar">
                                     <span>${userData.name}</span>
+                                    ${userData.isAdmin ? '<span class="badge bg-warning ms-2">Admin</span>' : ''}
                                 </div>
                             </td>
                             <td>${userData.email}</td>
@@ -267,8 +269,15 @@
                                     ${isOnline ? 'En línea' : 'Desconectado'}
                                 </span>
                             </td>
-                            <td>${lastLogin.toLocaleString()}</td>
-                            <td>${userData.provider || 'Email'}</td>
+                            <td>
+                                <div>Último: ${lastLogin.toLocaleString()}</div>
+                                <small class="text-muted">Creado: ${createdAt.toLocaleString()}</small>
+                            </td>
+                            <td>
+                                <span class="badge ${userData.provider === 'google.com' ? 'bg-danger' : 'bg-primary'}">
+                                    ${userData.provider === 'google.com' ? 'Google' : 'Email'}
+                                </span>
+                            </td>
                         `;
                         tableBody.appendChild(row);
                     });
@@ -279,14 +288,22 @@
 
         // Verificar autenticación
         firebase.auth().onAuthStateChanged((user) => {
-            const isAdmin = localStorage.getItem('isAdmin');
-            if (!isAdmin || isAdmin !== 'true') {
+            if (!user) {
                 window.location.href = 'index.html';
                 return;
             }
-            
-            // Iniciar actualización automática
-            setupAutoRefresh();
+
+            // Verificar si el usuario es admin
+            const userRef = firebase.database().ref('users/' + user.uid);
+            userRef.once('value').then((snapshot) => {
+                const userData = snapshot.val();
+                if (!userData || !userData.isAdmin) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                // Iniciar actualización automática solo si es admin
+                setupAutoRefresh();
+            });
         });
 
         // Limpiar temporizador cuando se cierra la página
