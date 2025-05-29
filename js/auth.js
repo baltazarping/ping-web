@@ -4,14 +4,17 @@ const firebaseConfig = {
     apiKey: "AIzaSyACYdTx-sM9sNQ5a6jqD05oEcE-4n2o2TM",
     authDomain: "pingnec-f8d76.firebaseapp.com",
     projectId: "pingnec-f8d76",
-    storageBucket: "pingnec-f8d76.firebasestorage.app",
+    databaseURL: "https://pingnec-f8d76-default-rtdb.firebaseio.com",
+    storageBucket: "pingnec-f8d76.appspot.com",
     messagingSenderId: "677440746671",
     appId: "1:677440746671:web:1ef4837b5c385f7dc0d05a",
     measurementId: "G-X7C3CMZR2L"
-  };
+};
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
 // Referencias a elementos del DOM
 const loginModal = document.getElementById('loginModal');
@@ -28,13 +31,13 @@ const provider = new firebase.auth.GoogleAuthProvider();
 function signInWithGoogle() {
     firebase.auth().signInWithPopup(provider)
         .then((result) => {
-            // El usuario ha iniciado sesión correctamente
             const user = result.user;
             saveUserToDatabase(user);
             closeLoginModal();
+            showSuccess("¡Inicio de sesión con Google exitoso!");
         }).catch((error) => {
             console.error("Error en el inicio de sesión:", error);
-            showError("Error al iniciar sesión con Google. Por favor, intenta nuevamente.");
+            showError(getErrorMessage(error.code));
         });
 }
 
@@ -42,11 +45,11 @@ function signInWithGoogle() {
 function registerWithEmail(email, password, name) {
     firebase.auth().createUserWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            // Actualizar el perfil del usuario con su nombre
-            return userCredential.user.updateProfile({
+            const user = userCredential.user;
+            return user.updateProfile({
                 displayName: name
             }).then(() => {
-                saveUserToDatabase(userCredential.user);
+                saveUserToDatabase(user);
                 closeLoginModal();
                 showSuccess("¡Registro exitoso!");
             });
@@ -61,7 +64,8 @@ function registerWithEmail(email, password, name) {
 function signInWithEmail(email, password) {
     firebase.auth().signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
-            saveUserToDatabase(userCredential.user);
+            const user = userCredential.user;
+            saveUserToDatabase(user);
             closeLoginModal();
             showSuccess("¡Inicio de sesión exitoso!");
         })
@@ -85,6 +89,8 @@ function signOut() {
 
 // Función para guardar usuario en la base de datos
 function saveUserToDatabase(user) {
+    if (!user) return;
+
     const userRef = firebase.database().ref('users/' + user.uid);
     const userData = {
         name: user.displayName || 'Usuario sin nombre',
@@ -92,16 +98,17 @@ function saveUserToDatabase(user) {
         photoURL: user.photoURL || 'assets/img/default-avatar.png',
         lastLogin: new Date().toISOString(),
         provider: user.providerData[0].providerId,
-        createdAt: user.metadata.creationTime,
-        isAdmin: false // Por defecto, ningún usuario es admin
+        createdAt: user.metadata.creationTime || new Date().toISOString(),
+        isAdmin: false
     };
+
     userRef.update(userData).then(() => {
         console.log('Usuario guardado en la base de datos');
-        // Si el usuario es admin@ping.com, lo marcamos como admin
         if (user.email === 'admin@ping.com') {
             userRef.update({ isAdmin: true });
             localStorage.setItem('isAdmin', 'true');
         }
+        updateUI(user);
     }).catch(error => {
         console.error('Error al guardar usuario:', error);
     });
@@ -112,35 +119,35 @@ function updateUI(user) {
     if (user) {
         // Usuario está autenticado
         if (userDisplay) {
-            userDisplay.innerHTML = `
-                <img src="${user.photoURL || 'assets/img/default-avatar.png'}" alt="${user.displayName}" class="user-avatar">
-                <span>${user.displayName}</span>
-            `;
+            const photoURL = user.photoURL || 'assets/img/default-avatar.png';
+            const displayName = user.displayName || 'Usuario';
+            
+            userDisplay.querySelector('img').src = photoURL;
+            userDisplay.querySelector('img').alt = displayName;
+            userDisplay.querySelector('span').textContent = displayName;
+            
             userDisplay.style.display = 'flex';
+            loginButton.style.display = 'none';
+            logoutButton.style.display = 'block';
         }
-        if (loginButton) loginButton.style.display = 'none';
-        if (logoutButton) logoutButton.style.display = 'block';
     } else {
         // Usuario no está autenticado
         if (userDisplay) {
-            userDisplay.innerHTML = '';
             userDisplay.style.display = 'none';
+            loginButton.style.display = 'block';
+            logoutButton.style.display = 'none';
         }
-        if (loginButton) loginButton.style.display = 'block';
-        if (logoutButton) logoutButton.style.display = 'none';
     }
 }
 
 // Función para mostrar mensajes de error
 function showError(message) {
-    // Aquí puedes implementar tu propia lógica para mostrar errores
     alert(message);
 }
 
 // Función para mostrar mensajes de éxito
 function showSuccess(message) {
-    // Aquí puedes implementar tu propia lógica para mostrar mensajes de éxito
-    console.log(message);
+    alert(message);
 }
 
 // Función para cerrar el modal de login
