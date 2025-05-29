@@ -240,7 +240,6 @@
             const products = JSON.parse(localStorage.getItem('products') || '[]');
             const newStock = parseInt(products[index].stock) + change;
             
-            // Evitar stock negativo
             if (newStock < 0) {
                 alert('El stock no puede ser negativo');
                 return;
@@ -251,7 +250,17 @@
             loadProducts();
         }
 
-        // Manejar el formulario de agregar producto
+        // Eliminar producto
+        function deleteProduct(index) {
+            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+                const products = JSON.parse(localStorage.getItem('products') || '[]');
+                products.splice(index, 1);
+                localStorage.setItem('products', JSON.stringify(products));
+                loadProducts();
+            }
+        }
+
+        // Actualizar el manejo del formulario
         addProductForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const product = {
@@ -263,20 +272,9 @@
             const products = JSON.parse(localStorage.getItem('products') || '[]');
             products.push(product);
             localStorage.setItem('products', JSON.stringify(products));
-
             addProductToTable(product, products.length - 1);
             addProductForm.reset();
         });
-
-        // Eliminar producto
-        function deleteProduct(index) {
-            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-                const products = JSON.parse(localStorage.getItem('products') || '[]');
-                products.splice(index, 1);
-                localStorage.setItem('products', JSON.stringify(products));
-                loadProducts();
-            }
-        }
 
         // Verificar autenticación al cargar la página
         checkAuth();
