@@ -143,7 +143,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Registros de Usuarios</h2>
             <div>
-                <span id="nextUpdate" class="text-muted me-3">Próxima actualización en: 10:00</span>
+                <span id="lastUpdate" class="text-muted me-3">Última actualización: --:--:--</span>
                 <button class="btn btn-primary" onclick="refreshTable()">
                     <i class="fas fa-sync-alt me-2"></i>Actualizar
                 </button>
@@ -195,27 +195,17 @@
         // Referencias
         const usersRef = firebase.database().ref('users');
         const tableBody = document.getElementById('usersTableBody');
-        const nextUpdateSpan = document.getElementById('nextUpdate');
+        const lastUpdateSpan = document.getElementById('lastUpdate');
 
         // Variables para el temporizador
-        const UPDATE_INTERVAL = 10 * 60 * 1000; // 10 minutos en milisegundos
+        const UPDATE_INTERVAL = 1000; // 1 segundo en milisegundos
         let updateTimer;
-        let countdownInterval;
 
-        // Función para actualizar el contador
-        function updateCountdown() {
-            const now = new Date().getTime();
-            const nextUpdate = new Date(localStorage.getItem('nextUpdate'));
-            const timeLeft = nextUpdate - now;
-
-            if (timeLeft <= 0) {
-                refreshTable();
-                return;
-            }
-
-            const minutes = Math.floor(timeLeft / (1000 * 60));
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            nextUpdateSpan.textContent = `Próxima actualización en: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        // Función para actualizar la hora de última actualización
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            lastUpdateSpan.textContent = `Última actualización: ${timeStr}`;
         }
 
         // Función para refrescar la tabla
@@ -223,32 +213,23 @@
             const refreshBtn = document.querySelector('.fa-sync-alt');
             refreshBtn.classList.add('fa-spin');
             
-            // Establecer la próxima actualización
-            const nextUpdate = new Date().getTime() + UPDATE_INTERVAL;
-            localStorage.setItem('nextUpdate', nextUpdate);
-            
             // Recargar datos
             loadUsers().then(() => {
-                setTimeout(() => {
-                    refreshBtn.classList.remove('fa-spin');
-                }, 1000);
+                refreshBtn.classList.remove('fa-spin');
+                updateLastUpdateTime();
             });
-
-            // Reiniciar el temporizador
-            setupAutoRefresh();
         }
 
         // Configurar actualización automática
         function setupAutoRefresh() {
-            // Limpiar temporizadores existentes
-            if (updateTimer) clearTimeout(updateTimer);
-            if (countdownInterval) clearInterval(countdownInterval);
+            // Limpiar temporizador existente
+            if (updateTimer) clearInterval(updateTimer);
 
-            // Configurar próxima actualización
-            updateTimer = setTimeout(refreshTable, UPDATE_INTERVAL);
+            // Configurar actualización cada segundo
+            updateTimer = setInterval(refreshTable, UPDATE_INTERVAL);
             
-            // Actualizar el contador cada segundo
-            countdownInterval = setInterval(updateCountdown, 1000);
+            // Primera carga
+            refreshTable();
         }
 
         // Función para cargar usuarios
@@ -304,14 +285,13 @@
                 return;
             }
             
-            // Iniciar carga inicial y configurar actualización automática
-            refreshTable();
+            // Iniciar actualización automática
+            setupAutoRefresh();
         });
 
-        // Limpiar temporizadores cuando se cierra la página
+        // Limpiar temporizador cuando se cierra la página
         window.addEventListener('beforeunload', () => {
-            if (updateTimer) clearTimeout(updateTimer);
-            if (countdownInterval) clearInterval(countdownInterval);
+            if (updateTimer) clearInterval(updateTimer);
         });
     </script>
 </body>
