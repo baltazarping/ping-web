@@ -239,6 +239,19 @@
             .portfolio-hover-content {
                 color: #ffffff;
             }
+
+            .user-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                margin-right: 8px;
+            }
+            #userDisplay {
+                display: flex;
+                align-items: center;
+                color: white;
+                margin-left: 15px;
+            }
         </style>
     </head>
     <body id="page-top">
@@ -264,6 +277,11 @@
                         <li class="nav-item"><a class="nav-link" href="#about">Proceso</a></li>
                         <li class="nav-item"><a class="nav-link" href="#team">Equipo</a></li>
                         <li class="nav-item"><a class="nav-link" href="#contact">Contactanos</a></li>
+                        <li class="nav-item">
+                            <button id="loginButton" class="btn btn-primary">Iniciar Sesión</button>
+                            <div id="userDisplay"></div>
+                            <button id="logoutButton" class="btn btn-outline-light" style="display: none;">Cerrar Sesión</button>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -823,5 +841,12 @@
                 });
             }
         </script>
+        <!-- Firebase Scripts -->
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+        
+        <!-- Authentication JS -->
+        <script src="js/auth.js"></script>
     </body>
 </html>
