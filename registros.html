@@ -140,7 +140,12 @@
 
     <!-- Registros Section -->
     <div class="container registros-container">
-        <h2 class="text-center mb-4">Registros de Usuarios</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Registros de Usuarios</h2>
+            <button class="btn btn-primary" onclick="refreshTable()">
+                <i class="fas fa-sync-alt me-2"></i>Actualizar
+            </button>
+        </div>
         
         <!-- Search and Filters -->
         <div class="row">
@@ -206,45 +211,63 @@
         const searchInput = document.getElementById('searchInput');
         const filterButtons = document.querySelectorAll('.filter-btn');
 
-        // Cargar usuarios
+        // Función para refrescar la tabla
+        function refreshTable() {
+            const refreshBtn = document.querySelector('.fa-sync-alt');
+            refreshBtn.classList.add('fa-spin'); // Agregar animación de giro
+            
+            // Recargar datos
+            loadUsers().then(() => {
+                // Detener la animación después de 1 segundo
+                setTimeout(() => {
+                    refreshBtn.classList.remove('fa-spin');
+                }, 1000);
+            });
+        }
+
+        // Modificar loadUsers para devolver una promesa
         function loadUsers() {
-            usersRef.on('value', (snapshot) => {
-                const users = snapshot.val();
-                tableBody.innerHTML = '';
+            return new Promise((resolve) => {
+                usersRef.once('value', (snapshot) => {
+                    const users = snapshot.val();
+                    tableBody.innerHTML = '';
 
-                if (!users) {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="5" class="no-results">No hay usuarios registrados</td>
-                        </tr>
-                    `;
-                    return;
-                }
+                    if (!users) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="no-results">No hay usuarios registrados</td>
+                            </tr>
+                        `;
+                        resolve();
+                        return;
+                    }
 
-                Object.entries(users).forEach(([uid, userData]) => {
-                    const row = document.createElement('tr');
-                    const lastLogin = new Date(userData.lastLogin);
-                    const isOnline = (new Date() - lastLogin) < 300000; // 5 minutos
+                    Object.entries(users).forEach(([uid, userData]) => {
+                        const row = document.createElement('tr');
+                        const lastLogin = new Date(userData.lastLogin);
+                        const isOnline = (new Date() - lastLogin) < 300000; // 5 minutos
 
-                    row.innerHTML = `
-                        <td>
-                            <div class="user-info">
-                                <img src="${userData.photoURL || 'assets/img/default-avatar.png'}" alt="${userData.name}" class="user-avatar">
-                                <span>${userData.name}</span>
-                            </div>
-                        </td>
-                        <td>${userData.email}</td>
-                        <td>
-                            <span class="status-badge ${isOnline ? 'status-online' : 'status-offline'}">
-                                ${isOnline ? 'En línea' : 'Desconectado'}
-                            </span>
-                        </td>
-                        <td>${lastLogin.toLocaleString()}</td>
-                        <td>${userData.provider || 'Email'}</td>
-                    `;
+                        row.innerHTML = `
+                            <td>
+                                <div class="user-info">
+                                    <img src="${userData.photoURL || 'assets/img/default-avatar.png'}" alt="${userData.name}" class="user-avatar">
+                                    <span>${userData.name}</span>
+                                </div>
+                            </td>
+                            <td>${userData.email}</td>
+                            <td>
+                                <span class="status-badge ${isOnline ? 'status-online' : 'status-offline'}">
+                                    ${isOnline ? 'En línea' : 'Desconectado'}
+                                </span>
+                            </td>
+                            <td>${lastLogin.toLocaleString()}</td>
+                            <td>${userData.provider || 'Email'}</td>
+                        `;
 
-                    row.dataset.status = isOnline ? 'online' : 'offline';
-                    tableBody.appendChild(row);
+                        row.dataset.status = isOnline ? 'online' : 'offline';
+                        tableBody.appendChild(row);
+                    });
+                    resolve();
                 });
             });
         }
